@@ -3,10 +3,11 @@ import matplotlib.pyplot as plt
 import math
 import numpy as np
 import cmath
+import time
 
+import pyopencl as cl
 
-
-imsized = 3 #4 - 10
+imsized = 10 #4 - 10
 
 rcore = 0.1
 
@@ -15,13 +16,14 @@ List_of_Vort = np.array([-1.0- 0.5j, -1.0 + 0.5j, -0.5 - 0.5j, -0.5 + 0.5j])
 
 kvortexes = len(List_of_Vort)
 
-N = 50     #30 - 1000
-steps = 20  #10 - 300
+N = 100     #30 - 1000
+#steps = 10  #10 - 300
 tmax = 0.7 
+dt = 0.01
+
+steps = int(tmax/dt)
 
 
-
-dt = tmax / steps
 
 
 def RungeUpdateVortInTime(listofz):
@@ -103,7 +105,7 @@ def RungeEvalInDim(z, listofZ):
     k4 = dt * evalOnTimeGrid(z + k3,   listofZ)
 
     #returned complex value to display
-    return  z - (k1 + 2*k2 + 2*k3 + k4)/6  
+    return (k1 + 2*k2 + 2*k3 + k4)/6 
 
 
 def display(mesh):
@@ -145,7 +147,7 @@ def  run():
     mesh = np.zeros((n, n))
 
     xm = -2
-    ym = -2 
+    ym = -2
 
     arrX = np.linspace(xm, xm + 4, num = n)
     arrY = np.linspace(ym, ym + 4, num = n)
@@ -158,10 +160,10 @@ def  run():
         print(i)
         for j in range(n):
 
-            value = complex(arrX[i], arrY[j])
+            value = (complex(arrX[i], arrY[j]) - 1)/(3*complex(arrX[i], arrY[j]) + 2)
 
             for t in range(steps, -1, -1):
-                value = RungeEvalInDim(value, VortMesh[t, :])
+                value -= RungeEvalInDim(value, VortMesh[t, :])
 
             mesh[j, i] = cmath.phase(value) * math.copysign(1, value.imag) 
             #mesh[j, i] = value
